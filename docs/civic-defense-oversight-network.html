@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Civic-Defense Oversight Network — Los Angeles 2025</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  body{margin:0;background:#0f172a;font-family:Inter,sans-serif;color:#e2e8f0;overflow:hidden;}
+  .tooltip{position:absolute;background:#1e293bcc;color:#f1f5f9;padding:8px 10px;border-radius:8px;font-size:13px;pointer-events:none;}
+  .node circle{stroke:#fff;stroke-width:1.2px;}
+</style>
+</head>
+<body>
+<svg width="100%" height="100vh"></svg>
+<div class="tooltip" style="opacity:0"></div>
+<script>
+const nodes=[
+{id:"DOD OIG",group:"Agency",desc:"Defense oversight and FOIA center"},
+{id:"FBI Los Angeles Field Office",group:"Agency",desc:"Counter-espionage & contractor monitoring"},
+{id:"DARPA",group:"Agency",desc:"Runs AI Next program"},
+{id:"Northrop Grumman",group:"Company",desc:"ISR systems contractor"},
+{id:"Anduril Industries",group:"Company",desc:"Autonomous AI defense platforms"},
+{id:"Raytheon Technologies",group:"Company",desc:"Sensor fusion and missile tech"},
+{id:"SpaceX",group:"Company",desc:"Secure satcom links"},
+{id:"Palantir Technologies",group:"Company",desc:"Data fusion for threat analysis"},
+{id:"DARPA AI Next Program",group:"Funding",desc:"Autonomy R&D initiative"},
+{id:"Ukraine Support Evaluations",group:"Funding",desc:"Audit of Ukraine aid flows"},
+{id:"Threat Screening AI (TSC2)",group:"Technology",desc:"Predictive screening system"},
+{id:"Missile Launch Detection AI",group:"Technology",desc:"Orbital sensor analytics"},
+{id:"Cognitive Electronic Warfare",group:"Technology",desc:"Adaptive signal processing"},
+{id:"Robert Storch",group:"Person",desc:"DOD Inspector General"},
+{id:"El Segundo Tech Corridor",group:"Cluster",desc:"LA aerospace hub"},
+{id:"Contractor Transparency",group:"Topic",desc:"Oversight and ethics theme"}
+];
+const links=[
+{source:"DOD OIG",target:"Robert Storch"},
+{source:"DOD OIG",target:"Contractor Transparency"},
+{source:"DOD OIG",target:"Ukraine Support Evaluations"},
+{source:"DARPA",target:"DARPA AI Next Program"},
+{source:"DARPA AI Next Program",target:"Anduril Industries"},
+{source:"DARPA AI Next Program",target:"Palantir Technologies"},
+{source:"FBI Los Angeles Field Office",target:"Threat Screening AI (TSC2)"},
+{source:"Raytheon Technologies",target:"Missile Launch Detection AI"},
+{source:"Northrop Grumman",target:"Missile Launch Detection AI"},
+{source:"SpaceX",target:"El Segundo Tech Corridor"},
+{source:"Anduril Industries",target:"El Segundo Tech Corridor"},
+{source:"Raytheon Technologies",target:"El Segundo Tech Corridor"},
+{source:"Ukraine Support Evaluations",target:"Northrop Grumman"},
+{source:"Ukraine Support Evaluations",target:"Raytheon Technologies"},
+{source:"Contractor Transparency",target:"DARPA"},
+{source:"Contractor Transparency",target:"FBI Los Angeles Field Office"}
+];
+const color=d3.scaleOrdinal({
+"Agency":"#60a5fa","Company":"#34d399","Funding":"#facc15",
+"Technology":"#38bdf8","Person":"#a78bfa","Cluster":"#94a3b8","Topic":"#fb923c"
+});
+const svg=d3.select("svg"),w=window.innerWidth,h=window.innerHeight;
+const tip=d3.select(".tooltip");
+const sim=d3.forceSimulation(nodes)
+.force("link",d3.forceLink(links).id(d=>d.id).distance(150))
+.force("charge",d3.forceManyBody().strength(-350))
+.force("center",d3.forceCenter(w/2,h/2));
+const link=svg.append("g").attr("stroke","#334155").attr("stroke-opacity",0.6)
+.selectAll("line").data(links).join("line").attr("stroke-width",2);
+const node=svg.append("g").selectAll("circle").data(nodes).join("circle")
+.attr("r",12).attr("fill",d=>color(d.group))
+.on("mouseover",(e,d)=>{tip.style("opacity",1)
+.html(`<strong>${d.id}</strong><br/><em>${d.group}</em><br/>${d.desc}`);})
+.on("mousemove",e=>tip.style("left",(e.pageX+10)+"px").style("top",(e.pageY-20)+"px"))
+.on("mouseout",()=>tip.style("opacity",0))
+.call(drag(sim));
+node.append("title").text(d=>d.id);
+sim.on("tick",()=>{link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+.attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+node.attr("cx",d=>d.x).attr("cy",d=>d.y);});
+function drag(sim){function s(e,d){if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;}
+function d(e,d){d.fx=e.x;d.fy=e.y;}
+function e(e,d){if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}
+return d3.drag().on("start",s).on("drag",d).on("end",e);}
+</script>
+</body>
+</html>
